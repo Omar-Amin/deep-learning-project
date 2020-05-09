@@ -30,7 +30,6 @@ class myConvolution2D(Layer):
         self.padding = padding
         self.strides = conv_utils.normalize_tuple(strides, 2, "strides")
         self.activation = activations.get(activation)
-        self.rank = 2
         if type(kernel_size) == tuple:
             self.kernel_size = kernel_size
         else:
@@ -80,7 +79,7 @@ input = Input(shape=(28, 28, 1))
 conv = myConvolution2D(16, kernel_size=3, strides=3, activation="relu")(input)
 # pool = MaxPooling2D()(conv)
 conv = myConvolution2D(32, kernel_size=3, activation="relu")(conv)
-# pool = MaxPooling2D()(conv)
+pool = MaxPooling2D()(conv)
 conv = myConvolution2D(64, kernel_size=3, activation="relu")(conv)
 # pool = MaxPooling2D()(conv)
 flat = Flatten()(conv)
