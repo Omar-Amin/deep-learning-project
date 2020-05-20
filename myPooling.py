@@ -35,7 +35,12 @@ class myPooling(Layer):
         return output
 
     def compute_output_shape(self, input_shape):
-        new_output_shape = []
-        for i in range(len(self.op_shape)):
-            new_output_shape.append(self.op_shape[i].value)
-        return tuple(new_output_shape)
+        rows = input_shape[1]
+        cols = input_shape[2]
+        rows = conv_utils.conv_output_length(
+            rows, self.pool_size[0], self.padding, self.strides[0]
+        )
+        cols = conv_utils.conv_output_length(
+            cols, self.pool_size[1], self.padding, self.strides[1]
+        )
+        return (input_shape[0], rows, cols, input_shape[3])

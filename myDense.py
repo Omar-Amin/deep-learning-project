@@ -2,10 +2,10 @@ from keras import backend as K
 from keras.layers import Layer, activations
 import tensorflow as tf
 
+
 class myDense(Layer):
-    def __init__(self, units=32, input_dim=32, bias=False, activation=None, **kwargs):
+    def __init__(self, units=32, bias=False, activation=None, **kwargs):
         self.units = units
-        self.input_dim = input_dim
         self.bias = bias
         self.activation = activations.get(activation)
         super(myDense, self).__init__(**kwargs)
@@ -34,6 +34,17 @@ class myDense(Layer):
         return output
 
     def compute_output_shape(self, input_shape):
+        assert input_shape and len(input_shape) >= 2
+        assert input_shape[-1]
         output_shape = list(input_shape)
         output_shape[-1] = self.units
         return tuple(output_shape)
+
+    def get_config(self):
+        config = {
+            "units": self.units,
+            "activation": activations.serialize(self.activation),
+            "bias": self.bias,
+        }
+        base_config = super(myDense, self).get_config()
+        return dict(list(base_config.items()) + list(config.items()))

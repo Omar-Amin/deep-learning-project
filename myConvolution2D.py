@@ -7,7 +7,7 @@ import numpy as np
 class myConvolution2D(Layer):
     def __init__(
         self,
-        filters,
+        filters=1,
         kernel_size=(3, 3),
         activation=None,
         padding="valid",
@@ -41,8 +41,14 @@ class myConvolution2D(Layer):
         return output
 
     def compute_output_shape(self, input_shape):
-        # we can get the shape from our output shape
-        new_output_shape = []
-        for i in range(len(self.op_shape)):
-            new_output_shape.append(self.op_shape[i].value)
-        return tuple(new_output_shape)
+        space = input_shape[1:-1]
+        new_space = []
+        for i in range(len(space)):
+            new_dim = conv_utils.conv_output_length(
+                space[i],
+                self.kernel_size[i],
+                padding=self.padding,
+                stride=self.strides[i],
+            )
+            new_space.append(new_dim)
+        return (input_shape[0],) + tuple(new_space) + (self.filters,)

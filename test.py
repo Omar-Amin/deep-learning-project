@@ -2,7 +2,7 @@ from myPooling import myPooling as myPool
 from myDense import myDense as myDense
 from myConvolution2D import myConvolution2D as myConv
 from keras import backend as K
-from keras.layers import Layer, Flatten
+from keras.layers import Layer, Flatten, Dense, Conv2D, Conv3D
 from keras.models import Model
 import keras
 from keras.datasets import mnist
@@ -12,7 +12,9 @@ from keras.layers import Input
 import matplotlib.pyplot as plt
 from keras import activations
 from keras.callbacks import EarlyStopping
+import tensorflow as tf
 
+Conv2D()
 # First we import the data
 (x_train, y_train), (x_test, y_test) = mnist.load_data()
 
