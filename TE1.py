@@ -18,6 +18,7 @@ from keras.preprocessing.image import img_to_array
 from keras.preprocessing.image import array_to_img
 import os
 import tensorflow as tf
+from mySequence import mySequence as mySeq
 
 
 def search(directory, data, labels, label):
@@ -88,18 +89,9 @@ def make_model():
 
 
 def evaluate_model(model):
-    data = []
-    y_test = []
+    test = mySeq("project_2020/encoded", 53)
 
-    search("project_2020/encoded/NORMAL/", data, y_test, 0)
-    search("project_2020/encoded/PNEUMONIA/", data, y_test, 1)
-
-    data = np.asarray(data)
-    y_test = np.asarray(y_test)
-    data = data / 255.0
-    y_test = np_utils.to_categorical(y_test)
-
-    print(model.evaluate(data, y_test))
+    print(model.evaluate_generator(test))
 
 
 def save_model(model):
@@ -125,9 +117,9 @@ def load_model_from_disk(path):
     )
 
 
-model = make_model()
+# model = make_model()
 # save_model(model)
-model.save("model3.h5")
+# model.save("model3.h5")
 new_model = load_model_from_disk("model3.h5")
 
 evaluate_model(new_model)
