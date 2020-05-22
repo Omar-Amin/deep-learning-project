@@ -14,11 +14,11 @@ class myPooling(Layer):
     ):
         super(myPooling, self).__init__(**kwargs)
         self.pool_mode = pool_mode
-        if strides is None:
-            self.strides = pool_size
-        else:
-            self.strides = strides
         self.pool_size = conv_utils.normalize_tuple(pool_size, 2, "pool_size")
+        if strides is None:
+            self.strides = self.pool_size
+        else:
+            self.strides = conv_utils.normalize_tuple(strides, 2, "strides")
         self.padding = conv_utils.normalize_padding(padding)
         self.input_spec = InputSpec(ndim=4)
 
@@ -31,7 +31,6 @@ class myPooling(Layer):
             "channels_last",
             pool_mode=self.pool_mode,
         )
-        self.op_shape = output.shape
         return output
 
     def compute_output_shape(self, input_shape):
@@ -44,3 +43,15 @@ class myPooling(Layer):
             cols, self.pool_size[1], self.padding, self.strides[1]
         )
         return (input_shape[0], rows, cols, input_shape[3])
+
+    def get_config(self):
+        config = super(myPooling, self).get_config()
+        config.update(
+            {
+                "pool_size": self.pool_size,
+                "padding": self.padding,
+                "strides": self.strides,
+                "pool_mode": self.pool_mode,
+            }
+        )
+        return config

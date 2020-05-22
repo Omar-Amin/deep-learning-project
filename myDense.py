@@ -1,6 +1,7 @@
 from keras import backend as K
 from keras.layers import Layer, activations
 import tensorflow as tf
+from keras.utils import serialize_keras_object
 
 
 class myDense(Layer):
@@ -41,10 +42,13 @@ class myDense(Layer):
         return tuple(output_shape)
 
     def get_config(self):
-        config = {
-            "units": self.units,
-            "activation": activations.serialize(self.activation),
-            "bias": self.bias,
-        }
-        base_config = super(myDense, self).get_config()
-        return dict(list(base_config.items()) + list(config.items()))
+        config = super(myDense, self).get_config()
+        config.update(
+            {
+                "units": self.units,
+                "activation": activations.serialize(self.activation),
+                "bias": self.bias,
+            }
+        )
+
+        return config

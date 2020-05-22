@@ -12,16 +12,15 @@ class myConvolution2D(Layer):
         activation=None,
         padding="valid",
         strides=1,
+        dilation_rate=(1, 1),
         **kwargs,
     ):
         self.filters = filters
         self.padding = padding
         self.strides = conv_utils.normalize_tuple(strides, 2, "strides")
         self.activation = activations.get(activation)
-        if type(kernel_size) == tuple:
-            self.kernel_size = kernel_size
-        else:
-            self.kernel_size = (kernel_size, kernel_size)
+        self.dilation_rate = dilation_rate
+        self.kernel_size = conv_utils.normalize_tuple(kernel_size, 2, "kernel_size")
         super(myConvolution2D, self).__init__(**kwargs)
 
     def build(self, input_shape):
@@ -34,10 +33,15 @@ class myConvolution2D(Layer):
         super(myConvolution2D, self).build(input_shape)
 
     def call(self, x):
-        output = K.conv2d(x, self.kernel, strides=self.strides, padding=self.padding)
+        output = K.conv2d(
+            x,
+            self.kernel,
+            strides=self.strides,
+            padding=self.padding,
+            dilation_rate=self.dilation_rate,
+        )
         if self.activation is not None:
             output = self.activation(output)
-        self.op_shape = output.shape
         return output
 
     def compute_output_shape(self, input_shape):
@@ -52,3 +56,17 @@ class myConvolution2D(Layer):
             )
             new_space.append(new_dim)
         return (input_shape[0],) + tuple(new_space) + (self.filters,)
+
+    def get_config(self):
+        config = super(myConvolution2D, self).get_config()
+        config.update(
+            {
+                "filters": self.filters,
+                "kernel_size": self.kernel_size,
+                "strides": self.strides,
+                "padding": self.padding,
+                "dilation_rate": self.dilation_rate,
+                "activation": activations.serialize(self.activation),
+            }
+        )
+        return config
