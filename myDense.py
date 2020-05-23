@@ -1,13 +1,23 @@
 from keras import backend as K
-from keras.layers import Layer, activations
+from keras.layers import *
 import tensorflow as tf
 from keras.utils import serialize_keras_object
 
 
 class myDense(Layer):
-    def __init__(self, units=32, bias=False, activation=None, **kwargs):
+    def __init__(
+        self,
+        units=32,
+        bias=True,
+        weight_initializer="glorot_uniform",
+        weight_regularizer=None,
+        activation=None,
+        **kwargs
+    ):
         self.units = units
         self.bias = bias
+        self.weight_initializer = initializers.get(weight_initializer)
+        self.weight_regularizer = regularizers.get(weight_regularizer)
         self.activation = activations.get(activation)
         super(myDense, self).__init__(**kwargs)
 
@@ -16,12 +26,13 @@ class myDense(Layer):
         self.w = self.add_weight(
             name="w",
             shape=(input_shape[-1], self.units),
-            initializer="random_normal",
+            initializer=self.weight_initializer,
+            regularizer=self.weight_regularizer,
             trainable=True,
         )
         if self.bias:
             self.b = self.add_weight(
-                name="b", shape=(self.units,), initializer="constant", trainable=True
+                name="b", shape=(self.units,), initializer="zeros", trainable=True
             )
         else:
             self.b = 0
@@ -48,6 +59,8 @@ class myDense(Layer):
                 "units": self.units,
                 "activation": activations.serialize(self.activation),
                 "bias": self.bias,
+                "weight_initializer": initializers.serialize(self.weight_initializer),
+                "weight_regularizer": regularizers.serialize(self.weight_regularizer),
             }
         )
 

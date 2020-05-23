@@ -10,25 +10,33 @@ class myConvolution2D(Layer):
         filters=1,
         kernel_size=(3, 3),
         activation=None,
+        kernel_initializer="glorot_uniform",
         padding="valid",
         strides=1,
         dilation_rate=(1, 1),
+        bias=True,
         **kwargs,
     ):
         self.filters = filters
+        self.kernel_initializer = initializers.get(kernel_initializer)
         self.padding = padding
         self.strides = conv_utils.normalize_tuple(strides, 2, "strides")
         self.activation = activations.get(activation)
         self.dilation_rate = dilation_rate
         self.kernel_size = conv_utils.normalize_tuple(kernel_size, 2, "kernel_size")
+        self.bias = bias
         super(myConvolution2D, self).__init__(**kwargs)
 
     def build(self, input_shape):
         self.kernel = self.add_weight(
             name="kernel",
             shape=self.kernel_size + (input_shape[-1], self.filters),
-            initializer="glorot_uniform",
+            initializer=self.kernel_initializer,
         )
+        if self.bias:
+            self.b = self.add_weight(
+                name="b", shape=(self.filters,), initializer="zeros", trainable=True
+            )
 
         super(myConvolution2D, self).build(input_shape)
 
@@ -40,6 +48,8 @@ class myConvolution2D(Layer):
             padding=self.padding,
             dilation_rate=self.dilation_rate,
         )
+        if self.bias:
+            output = K.bias_add(output, self.b, "channels_last")
         if self.activation is not None:
             output = self.activation(output)
         return output
@@ -67,6 +77,8 @@ class myConvolution2D(Layer):
                 "padding": self.padding,
                 "dilation_rate": self.dilation_rate,
                 "activation": activations.serialize(self.activation),
+                "kernel_initializer": initializers.serialize(self.kernel_initializer),
+                "bias": self.bias,
             }
         )
         return config

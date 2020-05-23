@@ -20,7 +20,6 @@ class myPooling(Layer):
         else:
             self.strides = conv_utils.normalize_tuple(strides, 2, "strides")
         self.padding = conv_utils.normalize_padding(padding)
-        self.input_spec = InputSpec(ndim=4)
 
     def call(self, inputs):
         output = K.pool2d(

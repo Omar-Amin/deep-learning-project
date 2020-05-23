@@ -6,6 +6,8 @@ from keras.preprocessing.image import img_to_array
 from keras.preprocessing.image import array_to_img
 import os
 from keras.utils import np_utils
+import random
+
 
 # Here, `x_set` is list of path to the images
 # and `y_set` are the associated classes.
@@ -30,12 +32,17 @@ def search(directory, data, labels, label):
 
 
 class mySequence(Sequence):
-    def __init__(self, directory,batch_size):
+    def __init__(self, directory, batch_size):
+        self.batch_size = batch_size
         self.director = directory
         self.data = []
         self.labels = []
         search(directory + "/NORMAL/", self.data, self.labels, 0)
         search(directory + "/PNEUMONIA/", self.data, self.labels, 1)
+        # shuffle at the beginning
+        tmp = list(zip(self.data, self.labels))
+        random.shuffle(tmp)
+        self.data, self.labels = zip(*tmp)
 
         self.data = np.asarray(self.data)
         self.labels = np.asarray(self.labels)
@@ -43,8 +50,11 @@ class mySequence(Sequence):
         self.labels = np_utils.to_categorical(self.labels)
 
     def __len__(self):
-        return len(self.data)
+        return math.ceil(len(self.data) / self.batch_size)
 
     def __getitem__(self, idx):
-        
-        return (self.data, self.labels)
+
+        return (
+            self.data[idx * self.batch_size : (idx + 1) * self.batch_size],
+            self.labels[idx * self.batch_size : (idx + 1) * self.batch_size],
+        )

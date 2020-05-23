@@ -2,7 +2,7 @@ from myPooling import myPooling as myPool
 from myDense import myDense as myDense
 from myConvolution2D import myConvolution2D as myConv
 from keras import backend as K
-from keras.layers import Layer, Flatten, Conv2D
+from keras.layers import Layer, Flatten, Dropout
 from keras.models import Model, load_model
 import keras
 import numpy as np
@@ -16,9 +16,10 @@ from keras.callbacks import EarlyStopping, ModelCheckpoint
 from keras.preprocessing.image import load_img
 from keras.preprocessing.image import img_to_array
 from keras.preprocessing.image import array_to_img
+from keras.preprocessing.image import ImageDataGenerator
 import os
-import tensorflow as tf
 from mySequence import mySequence as mySeq
+import random
 
 
 def search(directory, data, labels, label):
@@ -47,6 +48,12 @@ def make_model():
 
     search("project_2020/filtered/NORMAL/", data, y_train, 0)
     search("project_2020/filtered/PNEUMONIA/", data, y_train, 1)
+
+    # shuffle at the beginning
+    tmp = list(zip(data, y_train))
+    random.shuffle(tmp)
+    data, y_train = zip(*tmp)
+
     data = np.asarray(data)
     y_train = np.asarray(y_train)
     data = data / 255.0
@@ -54,16 +61,26 @@ def make_model():
 
     # Now we start defining our model. Note that the input shape is (28,28,1)
     input = Input(shape=(224, 224, 1))
-    conv = myConv(6, kernel_size=3, activation="relu")(input)
+    conv = myConv(32, kernel_size=3, strides=2, activation="relu")(input)
+    conv = myConv(32, kernel_size=3, activation="relu")(conv)
     pool = myPool()(conv)
-    conv = myConv(12, kernel_size=3, activation="relu")(pool)
+    conv = myConv(64, kernel_size=3, strides=2, activation="relu")(input)
+    conv = myConv(64, kernel_size=3, activation="relu")(conv)
     pool = myPool()(conv)
-    conv = myConv(6, kernel_size=3, activation="relu")(pool)
+    conv = myConv(128, kernel_size=3, strides=2, activation="relu")(input)
+    conv = myConv(128, kernel_size=3, activation="relu")(conv)
     pool = myPool()(conv)
-    conv = myConv(3, kernel_size=3, activation="relu")(pool)
-    pool = myPool()(conv)
-    flat = Flatten()(pool)
-    output = myDense(units=2, activation="softmax")(flat)
+    drop = Dropout(0.2)(pool)
+
+    flat = Flatten()(drop)
+    dense = myDense(units=256, bias=True, activation="relu")(flat)
+    drop = Dropout(0.4)(dense)
+    dense = myDense(units=86, bias=True, activation="relu")(drop)
+    drop = Dropout(0.3)(dense)
+    dense = myDense(units=32, bias=True, activation="relu")(drop)
+    drop = Dropout(0.15)(dense)
+
+    output = myDense(units=2, bias=True, activation="softmax")(drop)
 
     model = Model(input, output)
     model.compile(
@@ -79,17 +96,16 @@ def make_model():
     model.fit(
         data,
         y_train,
-        batch_size=32,
         epochs=30,
         validation_split=0.3,
-        callbacks=[mcallback, ModelCheckpoint("model2.h5")],
+        callbacks=[mcallback, ModelCheckpoint("model3.h5")],
     )
 
     return model
 
 
 def evaluate_model(model):
-    test = mySeq("project_2020/encoded", 53)
+    test = mySeq("project_2020/encoded", 15)
 
     print(model.evaluate_generator(test))
 
@@ -117,11 +133,11 @@ def load_model_from_disk(path):
     )
 
 
-# model = make_model()
-# save_model(model)
-# model.save("model3.h5")
-new_model = load_model_from_disk("model3.h5")
+model = make_model()
+save_model(model)
+model.save("model3.h5")
 
+new_model = load_model_from_disk("model3.h5")
 evaluate_model(new_model)
 
 # model = make_model()
