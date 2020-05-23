@@ -1,6 +1,7 @@
 import numpy as np
 import math
-from keras.utils import Sequence
+from keras.utils import Sequence, conv_utils
+from keras import initializers, activations, regularizers
 from keras.preprocessing.image import load_img
 from keras.preprocessing.image import img_to_array
 from keras.preprocessing.image import array_to_img

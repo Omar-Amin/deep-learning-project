@@ -1,5 +1,7 @@
 from keras import backend as K
 from keras.layers import *
+from keras.utils import conv_utils
+from keras import initializers, activations, regularizers
 import tensorflow as tf
 from keras.utils import serialize_keras_object
 
